@@ -1,0 +1,45 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend (C#)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-api",
+      "program": "${workspaceFolder}/UpsPoC.Api/bin/Debug/net8.0/UpsPoC.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/UpsPoC.Api",
+      "stopAtEntry": false,
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://0.0.0.0:5000"
+      }
+    },
+    {
+      "name": "Frontend (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/UpsPoC.Web/src",
+      "preLaunchTask": "start-frontend"
+    },
+    {
+      "name": "Frontend (Edge)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/UpsPoC.Web/src",
+      "preLaunchTask": "start-frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack (Chrome)",
+      "configurations": ["Backend (C#)", "Frontend (Chrome)"]
+    },
+    {
+      "name": "Full Stack (Edge)",
+      "configurations": ["Backend (C#)", "Frontend (Edge)"]
+    }
+  ]
+}
