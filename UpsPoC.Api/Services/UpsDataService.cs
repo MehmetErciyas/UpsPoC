@@ -6,10 +6,10 @@ namespace UpsPoC.Api.Services;
 
 public class UpsDataService : IUpsDataService
 {
-    private const int MaxSnapshots = 720;
+    private const int MaxSnapshots = 720; // 1 hour at 5-second polling intervals
 
     private readonly ConcurrentQueue<UpsSnapshot> _history = new();
-    private UpsStatus _latestStatus = new() { IsConnected = false };
+    private volatile UpsStatus _latestStatus = new() { IsConnected = false };
 
     public UpsStatus GetLatestStatus() => _latestStatus;
 
