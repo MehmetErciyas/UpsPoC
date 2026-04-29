@@ -12,7 +12,7 @@ public class UpsSettings
     public string Host { get; set; } = "192.168.143.246";
     public int Port { get; set; } = 161;
     public string ReadCommunity { get; set; } = "public";
-    public string WriteCommunity { get; set; } = "private";
+    public string WriteCommunity { get; set; } = string.Empty;
     public int TimeoutMs { get; set; } = 3000;
     public int DefaultPollingIntervalSeconds { get; set; } = 5;
 }

@@ -10,6 +10,7 @@ public class UpsStatus
 
     // Batarya
     public int BatteryStatus { get; set; }          // 1=bilinmiyor 2=normal 3=düşük 4=kritik
+    public int BatteryCapacityPercent { get; set; }  // upsEstimatedChargeRemaining 0-100%
     public string BatteryStatusText => BatteryStatus switch
     {
         2 => "Normal",
