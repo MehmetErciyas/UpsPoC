@@ -24,6 +24,9 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Production build output
+UpsPoC.Api/wwwroot/
+
 # AI tooling
 .claude/
 .superpowers/
