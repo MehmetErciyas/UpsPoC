@@ -212,4 +212,58 @@ public class SnmpService : ISnmpService
     {
         await SetIntAsync(Oids.TestSpinLock, 1);
     }
+
+    public async Task<RawOidResult> GetRawAsync(string oid)
+    {
+        try
+        {
+            var variables = new List<Variable> { new(new ObjectIdentifier(oid)) };
+            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(_settings.TimeoutMs));
+            var result = await Messenger.GetAsync(VersionCode.V2, _endpoint, _readCommunity, variables, cts.Token);
+            var data = result[0].Data;
+            return new RawOidResult
+            {
+                Oid   = oid,
+                Type  = data.GetType().Name,
+                Value = data.ToString() ?? string.Empty
+            };
+        }
+        catch (Exception ex)
+        {
+            return new RawOidResult { Oid = oid, Type = "Error", Value = ex.Message };
+        }
+    }
+
+    public async Task<List<RawOidResult>> WalkAsync(string startOid)
+    {
+        var results = new List<RawOidResult>();
+        try
+        {
+            var walked = new List<Variable>();
+            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(10000));
+            await Messenger.WalkAsync(
+                VersionCode.V2,
+                _endpoint,
+                _readCommunity,
+                new ObjectIdentifier(startOid),
+                walked,
+                WalkMode.WithinSubtree,
+                cts.Token);
+
+            foreach (var v in walked)
+            {
+                results.Add(new RawOidResult
+                {
+                    Oid   = v.Id.ToString(),
+                    Type  = v.Data.GetType().Name,
+                    Value = v.Data.ToString() ?? string.Empty
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            results.Add(new RawOidResult { Oid = startOid, Type = "Error", Value = ex.Message });
+        }
+        return results;
+    }
 }

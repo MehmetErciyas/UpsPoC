@@ -10,4 +10,6 @@ public interface ISnmpService
     Task SetIntAsync(string oid, int value);
     Task SetStringAsync(string oid, string value);
     Task RunBatteryTestAsync();
+    Task<List<RawOidResult>> WalkAsync(string startOid);
+    Task<RawOidResult> GetRawAsync(string oid);
 }
