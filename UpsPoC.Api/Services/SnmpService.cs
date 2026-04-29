@@ -11,6 +11,9 @@ public class SnmpService : ISnmpService
 {
     private readonly UpsSettings _settings;
     private readonly ILogger<SnmpService> _logger;
+    private readonly IPEndPoint _endpoint;
+    private readonly OctetString _readCommunity;
+    private readonly OctetString _writeCommunity;
 
     // RFC 1628 Read OIDs
     private static class Oids
@@ -55,26 +58,30 @@ public class SnmpService : ISnmpService
     {
         _settings = options.Value.Ups;
         _logger = logger;
+        _endpoint = new IPEndPoint(IPAddress.Parse(_settings.Host), _settings.Port);
+        _readCommunity = new OctetString(_settings.ReadCommunity);
+        _writeCommunity = new OctetString(_settings.WriteCommunity);
     }
 
-    private IPEndPoint Endpoint => new(IPAddress.Parse(_settings.Host), _settings.Port);
-    private OctetString ReadCommunity => new(_settings.ReadCommunity);
-    private OctetString WriteCommunity => new(_settings.WriteCommunity);
-
+    // Messenger.GetAsync/SetAsync in SharpSnmpLib 12.5.7 accept a CancellationToken (not an int timeout).
+    // We create a CancellationTokenSource from TimeoutMs to honour the configured timeout.
     private async Task<IList<Variable>> GetAsync(params string[] oids)
     {
         var variables = oids.Select(o => new Variable(new ObjectIdentifier(o))).ToList();
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(_settings.TimeoutMs));
         return await Messenger.GetAsync(
             VersionCode.V2,
-            Endpoint,
-            ReadCommunity,
-            variables);
+            _endpoint,
+            _readCommunity,
+            variables,
+            cts.Token);
     }
 
     private int GetInt(IList<Variable> vars, int index)
     {
         var data = vars[index].Data;
-        return data is NoSuchInstance or NoSuchObject ? 0 : int.Parse(data.ToString()!);
+        if (data is NoSuchInstance or NoSuchObject) return 0;
+        return int.TryParse(data.ToString(), out var result) ? result : 0;
     }
 
     private string GetStr(IList<Variable> vars, int index)
@@ -157,28 +164,48 @@ public class SnmpService : ISnmpService
 
     public async Task SetIntAsync(string oid, int value)
     {
-        var variables = new List<Variable>
+        try
         {
-            new(new ObjectIdentifier(oid), new Integer32(value))
-        };
-        await Messenger.SetAsync(
-            VersionCode.V2,
-            Endpoint,
-            WriteCommunity,
-            variables);
+            var variables = new List<Variable>
+            {
+                new(new ObjectIdentifier(oid), new Integer32(value))
+            };
+            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(_settings.TimeoutMs));
+            await Messenger.SetAsync(
+                VersionCode.V2,
+                _endpoint,
+                _writeCommunity,
+                variables,
+                cts.Token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "SNMP SET int failed for OID {Oid}", oid);
+            throw;
+        }
     }
 
     public async Task SetStringAsync(string oid, string value)
     {
-        var variables = new List<Variable>
+        try
         {
-            new(new ObjectIdentifier(oid), new OctetString(value))
-        };
-        await Messenger.SetAsync(
-            VersionCode.V2,
-            Endpoint,
-            WriteCommunity,
-            variables);
+            var variables = new List<Variable>
+            {
+                new(new ObjectIdentifier(oid), new OctetString(value))
+            };
+            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(_settings.TimeoutMs));
+            await Messenger.SetAsync(
+                VersionCode.V2,
+                _endpoint,
+                _writeCommunity,
+                variables,
+                cts.Token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "SNMP SET string failed for OID {Oid}", oid);
+            throw;
+        }
     }
 
     public async Task RunBatteryTestAsync()
