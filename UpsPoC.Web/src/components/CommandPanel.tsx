@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import ConfirmDialog from './ConfirmDialog';
 import type { UpsCommand } from '../types';
@@ -19,11 +19,19 @@ export default function CommandPanel() {
   const [toast, setToast] = useState<Toast | null>(null);
   const [shutdownDelay, setShutdownDelay] = useState(60);
   const [rebootDelay, setRebootDelay] = useState(60);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 4000);
   };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const executeCommand = async (cmd: UpsCommand) => {
     try {
@@ -141,7 +149,7 @@ export default function CommandPanel() {
         <ConfirmDialog
           title={pending.title}
           message={pending.message}
-          onConfirm={() => { executeCommand(pending.command); setPending(null); }}
+          onConfirm={async () => { setPending(null); await executeCommand(pending.command); }}
           onCancel={() => setPending(null)}
         />
       )}

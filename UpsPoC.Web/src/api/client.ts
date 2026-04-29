@@ -3,10 +3,18 @@ import type { UpsCommand, UpsConfig } from '../types';
 const BASE = '/api';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const headers: HeadersInit = {};
+  if (options?.body) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(`${BASE}${url}`, {
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers: {
+      ...headers,
+      ...options?.headers,
+    },
   });
 
   if (res.status === 401) {

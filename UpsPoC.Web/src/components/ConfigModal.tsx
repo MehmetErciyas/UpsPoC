@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { api } from '../api/client';
 import type { UpsConfig } from '../types';
 
@@ -12,6 +12,13 @@ export default function ConfigModal({ onClose }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     api.ups.getConfig()
@@ -27,7 +34,7 @@ export default function ConfigModal({ onClose }: Props) {
     try {
       await api.ups.setConfig(config);
       setSuccess(true);
-      setTimeout(() => { setSuccess(false); onClose(); }, 1200);
+      saveTimerRef.current = setTimeout(() => { setSuccess(false); onClose(); }, 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Kaydedilemedi');
     } finally {
