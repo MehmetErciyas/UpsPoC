@@ -1,0 +1,6 @@
+@UpsPoC.Api_HostAddress = http://localhost:5240
+
+GET {{UpsPoC.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

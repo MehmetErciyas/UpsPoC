@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="UpsPoC.Api.Tests/UpsPoC.Api.Tests.csproj" />
+  <Project Path="UpsPoC.Api/UpsPoC.Api.csproj" />
+</Solution>
