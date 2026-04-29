@@ -24,6 +24,7 @@ public class UpsController : ControllerBase
     public async Task<IActionResult> GetStatus()
     {
         var status = await _snmp.GetStatusAsync();
+        // Update in-memory history with fresh reading (polling side effect on GET)
         _upsData.UpdateStatus(status);
         return Ok(status);
     }
@@ -53,6 +54,23 @@ public class UpsController : ControllerBase
     {
         try
         {
+            // Validate IntValue ranges for commands that have known valid values
+            if (command.CommandName == "shutdown-type" && command.IntValue.HasValue
+                && command.IntValue is not (1 or 2))
+                return BadRequest(new { error = "shutdown-type değeri 1 (output) veya 2 (sistem) olmalıdır." });
+
+            if (command.CommandName == "audible-alarm" && command.IntValue.HasValue
+                && command.IntValue is not (1 or 2 or 3))
+                return BadRequest(new { error = "audible-alarm değeri 1 (kapalı), 2 (açık) veya 3 (geçici sessiz) olmalıdır." });
+
+            if (command.CommandName == "auto-restart" && command.IntValue.HasValue
+                && command.IntValue is not (1 or 2))
+                return BadRequest(new { error = "auto-restart değeri 1 (açık) veya 2 (kapalı) olmalıdır." });
+
+            if (command.CommandName == "reboot" && command.IntValue.HasValue
+                && (command.IntValue < 0 || command.IntValue > 300))
+                return BadRequest(new { error = "reboot gecikmesi 0-300 saniye arasında olmalıdır." });
+
             switch (command.CommandName)
             {
                 case "shutdown-type":
