@@ -6,11 +6,19 @@ interface Props {
 
 export default function DeviceInfo({ status }: Props) {
   const rows: [string, string][] = [
-    ['Model', status?.modelName || '—'],
+    ['Sistem Adı', status?.systemName || '—'],
+    ['Açıklama', status?.systemDescription || '—'],
+    ['Donanım Versiyonu', status?.hardwareVersion || '—'],
     ['Firmware', status?.firmwareVersion || '—'],
-    ['Çıkış Voltajı', status ? `${status.outputVoltage} VAC` : '—'],
-    ['Çıkış Frekansı', status ? `${status.outputFrequency} Hz` : '—'],
-    ['Bağlı Cihazlar', status?.attachedDevices || '—'],
+    ['Seri Numarası', status?.serialNumber || '—'],
+    ['Konum', status?.location || '—'],
+    ['Bağlantı Kişisi', status?.contact || '—'],
+    ['Çalışma Süresi', status?.uptimeText || '—'],
+    ['Son Test', status?.lastTestResultText || '—'],
+    ['Akü Adedi', status ? `${status.batteryBlockCount ?? 0} blok` : '—'],
+    ['Batarya Paket V', status ? `${(status.batteryPackVoltage ?? 0).toFixed(1)} V` : '—'],
+    ['Çıkış Voltajı', status ? `${(status.outputVoltage ?? 0).toFixed(1)} VAC` : '—'],
+    ['Çıkış Frekansı', status ? `${(status.outputFrequency ?? 0).toFixed(1)} Hz` : '—'],
   ];
 
   return (
@@ -20,7 +28,7 @@ export default function DeviceInfo({ status }: Props) {
         {rows.map(([label, value]) => (
           <div key={label} className="flex justify-between items-center">
             <dt className="text-slate-400 text-xs">{label}</dt>
-            <dd className="text-slate-200 text-xs font-medium text-right max-w-[60%] truncate">{value}</dd>
+            <dd className="text-slate-200 text-xs font-medium text-right max-w-[60%] truncate" title={value}>{value}</dd>
           </div>
         ))}
       </dl>

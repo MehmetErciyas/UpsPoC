@@ -15,6 +15,9 @@ public class UpsSettings
     public string WriteCommunity { get; set; } = string.Empty;
     public int TimeoutMs { get; set; } = 3000;
     public int DefaultPollingIntervalSeconds { get; set; } = 5;
+
+    // Otomatik akü adedi tespiti (nominal batarya voltajı / 12) başarısız olursa kullanılır.
+    public int FallbackBatteryBlockCount { get; set; } = 3;
 }
 
 public class AuthSettings

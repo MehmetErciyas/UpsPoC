@@ -1,4 +1,4 @@
-import type { UpsCommand, UpsConfig } from '../types';
+import type { ConnectionRequest, UpsCommand, UpsConfig, UpsConnectionInfo } from '../types';
 
 const BASE = '/api';
 
@@ -18,7 +18,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   });
 
   if (res.status === 401) {
-    window.location.href = '/';
+    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
     throw new Error('Oturum süresi doldu');
   }
 
@@ -46,7 +46,9 @@ export const api = {
     getConfig: () => request<UpsConfig>('/ups/config'),
     sendCommand: (cmd: UpsCommand) =>
       request<{ success: boolean }>('/ups/command', { method: 'POST', body: JSON.stringify(cmd) }),
-    setConfig: (config: UpsConfig) =>
-      request<{ success: boolean }>('/ups/config', { method: 'POST', body: JSON.stringify(config) }),
+    getConnection: () => request<UpsConnectionInfo>('/ups/connection'),
+    setConnection: (req: ConnectionRequest) =>
+      request<UpsConnectionInfo>('/ups/connection', { method: 'POST', body: JSON.stringify(req) }),
+    clearConnection: () => request<UpsConnectionInfo>('/ups/connection', { method: 'DELETE' }),
   },
 };

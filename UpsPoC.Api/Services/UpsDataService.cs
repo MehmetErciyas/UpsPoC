@@ -6,7 +6,7 @@ namespace UpsPoC.Api.Services;
 
 public class UpsDataService : IUpsDataService
 {
-    private const int MaxSnapshots = 720; // 1 hour at 5-second polling intervals
+    private const int MaxSnapshots = 720; // 1 saat @ 5 sn polling
 
     private readonly ConcurrentQueue<UpsSnapshot> _history = new();
     private volatile UpsStatus _latestStatus = new() { IsConnected = false };
@@ -28,8 +28,7 @@ public class UpsDataService : IUpsDataService
             OutputLoadPercent       = status.OutputLoadPercent,
             InputVoltage            = status.InputVoltage,
             OutputVoltage           = status.OutputVoltage,
-            BatteryRemainingMinutes = status.BatteryRemainingMinutes,
-            OutputPowerWatts        = status.OutputPowerWatts
+            BatteryRemainingMinutes = status.BatteryRemainingMinutes
         });
 
         while (_history.Count > MaxSnapshots)

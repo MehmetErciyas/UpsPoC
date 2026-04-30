@@ -1,14 +1,13 @@
 // UpsPoC.Api/Models/UpsConfig.cs
 namespace UpsPoC.Api.Models;
 
+// East EA900 / NetAgent IX cihazında SNMP üzerinden okunabilen statik kritik eşikler.
+// SET destekleyen OID'ler bu cihazda doğrulanmadığı için yazma desteklenmez.
 public class UpsConfig
 {
-    public int InputVoltageNominal { get; set; }     // RMS Volt
-    public int InputFreqNominal { get; set; }        // 0.1 Hz (500 = 50Hz)
-    public int OutputVoltageNominal { get; set; }    // RMS Volt
-    public int OutputFreqNominal { get; set; }       // 0.1 Hz
-    public int LowBatteryMinutes { get; set; }       // dakika
-    public int AudibleStatus { get; set; }           // 1=kapalı 2=açık 3=geçici sessiz
-    public int LowVoltageTransferPoint { get; set; } // RMS Volt
-    public int HighVoltageTransferPoint { get; set; }// RMS Volt
+    public int CriticalLoadPercent { get; set; }        // 935.1.1.1.4.3.1.0 (fallback .4.3.2.0, .6.1.1.0)
+    public double CriticalTemperatureC { get; set; }    // 935.1.1.1.2.3.1.0 (fallback .6.1.2.0) — ham/10
+    public int CriticalCapacityPercent { get; set; }    // 935.1.1.1.2.3.2.0 (fallback .6.1.3.0)
+    public double NominalOutputVoltage { get; set; }    // 935.1.1.1.5.2.1.0 — ham/10
+    public double NominalBatteryVoltage { get; set; }   // 935.1.1.1.2.2.6.0 — ham/10
 }

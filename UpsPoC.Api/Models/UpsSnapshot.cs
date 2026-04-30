@@ -9,5 +9,4 @@ public class UpsSnapshot
     public double InputVoltage { get; set; }
     public double OutputVoltage { get; set; }
     public int BatteryRemainingMinutes { get; set; }
-    public int OutputPowerWatts { get; set; }
 }

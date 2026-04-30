@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<AppSettings>(builder.Configuration);
 
 // SNMP + Data services
+builder.Services.AddSingleton<IConnectionState, ConnectionState>();
 builder.Services.AddSingleton<ISnmpService, SnmpService>();
 builder.Services.AddSingleton<IUpsDataService>(_ => new UpsDataService());
 
@@ -37,7 +38,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevCors", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());

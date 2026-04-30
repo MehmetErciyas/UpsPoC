@@ -12,6 +12,10 @@ export default function App() {
     api.auth.me()
       .then(() => setAuthState('authenticated'))
       .catch(() => setAuthState('unauthenticated'));
+
+    const onUnauthorized = () => setAuthState('unauthenticated');
+    window.addEventListener('auth:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', onUnauthorized);
   }, []);
 
   if (authState === 'loading') {

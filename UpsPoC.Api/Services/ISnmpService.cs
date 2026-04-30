@@ -9,6 +9,8 @@ public interface ISnmpService
     Task<UpsConfig> GetConfigAsync();
     Task SetIntAsync(string oid, int value);
     Task SetStringAsync(string oid, string value);
+    Task RebootAsync();
+    Task ShutdownAsync();
     Task RunBatteryTestAsync();
     Task<List<RawOidResult>> WalkAsync(string startOid, bool withinSubtree = true);
     Task<RawOidResult> GetRawAsync(string oid);

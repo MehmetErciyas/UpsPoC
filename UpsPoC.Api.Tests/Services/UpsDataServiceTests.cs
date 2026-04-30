@@ -35,7 +35,6 @@ public class UpsDataServiceTests
             OutputLoadPercent = 35,
             InputVoltage = 220,
             OutputVoltage = 220,
-            OutputPowerWatts = 210,
             IsConnected = true,
             Timestamp = DateTime.UtcNow
         };

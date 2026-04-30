@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api/client';
 import type { UpsStatus, UpsSnapshot } from '../types';
 
-export function useUpsData(intervalSeconds: number) {
+export function useUpsData(intervalSeconds: number, enabled: boolean) {
   const [status, setStatus] = useState<UpsStatus | null>(null);
   const [history, setHistory] = useState<UpsSnapshot[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -26,12 +26,25 @@ export function useUpsData(intervalSeconds: number) {
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      setStatus(null);
+      setHistory([]);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
     fetchData();
     intervalRef.current = setInterval(fetchData, intervalSeconds * 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [fetchData, intervalSeconds]);
+  }, [fetchData, intervalSeconds, enabled]);
 
   return { status, history, isLoading, error, refetch: fetchData };
 }

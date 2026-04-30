@@ -1,23 +1,37 @@
 export interface UpsStatus {
-  modelName: string;
+  // Sistem bilgisi
   firmwareVersion: string;
-  attachedDevices: string;
+  hardwareVersion: string;
+  serialNumber: string;
+  systemName: string;
+  systemDescription: string;
+  location: string;
+  contact: string;
+  uptimeText: string;
+  lastTestResultText: string;
+
+  // Batarya
   batteryStatus: number;
   batteryStatusText: string;
   batteryCapacityPercent: number;
   batteryRemainingMinutes: number;
-  batteryVoltage: number;
+  batteryVoltagePerCell: number;
+  batteryPackVoltage: number;
+  batteryBlockCount: number;
   batteryTemperature: number;
+
+  // Giriş
   inputVoltage: number;
   inputFrequency: number;
+
+  // Çıkış
   outputSource: number;
   outputSourceText: string;
-  outputFrequency: number;
   outputVoltage: number;
-  outputCurrent: number;
+  outputFrequency: number;
   outputLoadPercent: number;
-  outputPowerWatts: number;
-  activeAlarmCount: number;
+
+  // Metadata
   timestamp: string;
   isConnected: boolean;
   errorMessage?: string;
@@ -30,22 +44,31 @@ export interface UpsSnapshot {
   inputVoltage: number;
   outputVoltage: number;
   batteryRemainingMinutes: number;
-  outputPowerWatts: number;
 }
 
 export interface UpsConfig {
-  inputVoltageNominal: number;
-  inputFreqNominal: number;
-  outputVoltageNominal: number;
-  outputFreqNominal: number;
-  lowBatteryMinutes: number;
-  audibleStatus: number;
-  lowVoltageTransferPoint: number;
-  highVoltageTransferPoint: number;
+  criticalLoadPercent: number;
+  criticalTemperatureC: number;
+  criticalCapacityPercent: number;
+  nominalOutputVoltage: number;
+  nominalBatteryVoltage: number;
 }
 
 export interface UpsCommand {
-  commandName: string;
-  intValue?: number;
-  stringValue?: string;
+  commandName: 'reboot' | 'shutdown';
+}
+
+export interface ConnectionRequest {
+  host: string;
+  port: number;
+  readCommunity: string;
+  writeCommunity?: string;
+}
+
+export interface UpsConnectionInfo {
+  host: string;
+  port: number;
+  readCommunity: string;
+  hasWriteCommunity: boolean;
+  isConfigured: boolean;
 }
