@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { useUpsData } from '../hooks/useUpsData';
-import MetricCard from '../components/MetricCard';
-import PowerChart from '../components/PowerChart';
-import CommandPanel from '../components/CommandPanel';
-import AlarmPanel from '../components/AlarmPanel';
-import DeviceInfo from '../components/DeviceInfo';
 import ConfigModal from '../components/ConfigModal';
 import ConnectionBar from '../components/ConnectionBar';
+import LiveTab from '../components/tabs/LiveTab';
+import MetricsTableTab from '../components/tabs/MetricsTableTab';
+import ControlTab from '../components/tabs/ControlTab';
+import OidScanTab from '../components/tabs/OidScanTab';
 import type { UpsConnectionInfo } from '../types';
 
 interface Props {
@@ -16,12 +15,20 @@ interface Props {
 
 const INTERVAL_OPTIONS = [5, 10, 15, 30, 60];
 
+type TabKey = 'live' | 'detail' | 'control' | 'scan';
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'live',    label: '📊 Canlı' },
+  { key: 'detail',  label: '📋 Detay Tablo' },
+  { key: 'control', label: '🎛 Komut & Diagnostic' },
+  { key: 'scan',    label: '🔍 OID Tarama' },
+];
+
 export default function Dashboard({ onLogout }: Props) {
   const [intervalSec, setIntervalSec] = useState(5);
   const [showConfig, setShowConfig] = useState(false);
   const [connection, setConnection] = useState<UpsConnectionInfo | null>(null);
+  const [activeTab, setActiveTab] = useState<TabKey>('live');
 
-  // Mount'ta backend'in mevcut bağlantı state'ini al.
   useEffect(() => {
     api.ups.getConnection()
       .then(setConnection)
@@ -35,9 +42,6 @@ export default function Dashboard({ onLogout }: Props) {
     await api.auth.logout().catch(() => {});
     onLogout();
   };
-
-  const dimmed = !status?.isConnected;
-  const batteryProgress = status?.batteryCapacityPercent ?? 0;
 
   return (
     <div className="min-h-screen bg-slate-900 p-4">
@@ -72,8 +76,16 @@ export default function Dashboard({ onLogout }: Props) {
               {INTERVAL_OPTIONS.map(s => <option key={s} value={s}>{s}s</option>)}
             </select>
           </div>
+          <a
+            href={api.ups.historyCsvUrl}
+            download
+            className={`text-xs text-slate-400 hover:text-slate-200 transition-colors ${!isConfigured || history.length === 0 ? 'opacity-30 pointer-events-none' : ''}`}
+            title="Geçmiş veriyi CSV olarak indir"
+          >
+            ⬇ CSV
+          </a>
           <button onClick={() => setShowConfig(true)} disabled={!isConfigured} className="text-xs text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-            ⚙ Ayarlar
+            ⚙ Eşikler
           </button>
           <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-slate-200 transition-colors">
             🔓 Çıkış
@@ -83,7 +95,6 @@ export default function Dashboard({ onLogout }: Props) {
 
       <ConnectionBar connection={connection} onChange={setConnection} />
 
-      {/* Error banner */}
       {error && (
         <div className="bg-red-900/30 border border-red-800 text-red-300 text-sm rounded-lg px-4 py-2 mb-4">
           ⚠ {error}
@@ -98,63 +109,28 @@ export default function Dashboard({ onLogout }: Props) {
         </div>
       ) : (
         <>
-          {/* Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
-            <MetricCard
-              label="Batarya"
-              value={`${batteryProgress}%`}
-              subValue={status?.batteryStatusText}
-              color="green"
-              progress={batteryProgress}
-              dimmed={dimmed}
-            />
-            <MetricCard
-              label="Kalan Süre"
-              value={status ? `${status.batteryRemainingMinutes ?? 0}dk` : '—'}
-              subValue={status ? `${(status.batteryPackVoltage ?? 0).toFixed(1)}V (${(status.batteryVoltagePerCell ?? 0).toFixed(2)}V/cell × ${status.batteryBlockCount ?? 0})` : undefined}
-              color="blue"
-              progress={status ? Math.min(100, ((status.batteryRemainingMinutes ?? 0) / 60) * 100) : 0}
-              dimmed={dimmed}
-            />
-            <MetricCard
-              label="Yük"
-              value={status ? `${status.outputLoadPercent ?? 0}%` : '—'}
-              subValue={status ? `Çıkış ${(status.outputVoltage ?? 0).toFixed(1)}V / ${(status.outputFrequency ?? 0).toFixed(1)}Hz` : undefined}
-              color="yellow"
-              progress={status?.outputLoadPercent ?? 0}
-              dimmed={dimmed}
-            />
-            <MetricCard
-              label="Giriş"
-              value={status ? `${(status.inputVoltage ?? 0).toFixed(1)}V` : '—'}
-              subValue={status ? `${(status.inputFrequency ?? 0).toFixed(1)} Hz` : undefined}
-              color="purple"
-              progress={status ? Math.min(100, ((status.inputVoltage ?? 0) / 250) * 100) : 0}
-              dimmed={dimmed}
-            />
-            <MetricCard
-              label="Sıcaklık"
-              value={status ? `${(status.batteryTemperature ?? 0).toFixed(1)}°C` : '—'}
-              subValue="Batarya"
-              color="orange"
-              progress={status ? Math.min(100, ((status.batteryTemperature ?? 0) / 60) * 100) : 0}
-              dimmed={dimmed}
-            />
+          {/* Tab navigation */}
+          <div className="flex gap-1 mb-4 border-b border-slate-700">
+            {TABS.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setActiveTab(t.key)}
+                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                  activeTab === t.key
+                    ? 'text-sky-400 border-sky-400'
+                    : 'text-slate-400 border-transparent hover:text-slate-200'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
 
-          {/* Chart + Commands */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <div className="lg:col-span-2">
-              <PowerChart history={history} />
-            </div>
-            <CommandPanel />
-          </div>
-
-          {/* Alarm + Device Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AlarmPanel status={status} />
-            <DeviceInfo status={status} />
-          </div>
+          {/* Tab content */}
+          {activeTab === 'live'    && <LiveTab status={status} history={history} />}
+          {activeTab === 'detail'  && <MetricsTableTab refreshKey={Math.floor((status?.timestamp ? new Date(status.timestamp).getTime() : 0) / (intervalSec * 1000))} />}
+          {activeTab === 'control' && <ControlTab />}
+          {activeTab === 'scan'    && <OidScanTab />}
         </>
       )}
 

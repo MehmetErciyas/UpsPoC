@@ -12,6 +12,7 @@ export default function ConnectionBar({ connection, onChange }: Props) {
   const [port, setPort] = useState(161);
   const [readCommunity, setReadCommunity] = useState('public');
   const [writeCommunity, setWriteCommunity] = useState('');
+  const [manualBatteryCount, setManualBatteryCount] = useState<string>('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,19 +22,22 @@ export default function ConnectionBar({ connection, onChange }: Props) {
       setHost(connection.host);
       setPort(connection.port);
       setReadCommunity(connection.readCommunity);
+      setManualBatteryCount(connection.manualBatteryBlockCount?.toString() ?? '');
       // hasWriteCommunity true olsa bile değer dönmüyor; boş kalsın, kullanıcı yeniden girsin.
     }
-  }, [connection?.host, connection?.port, connection?.readCommunity]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [connection?.host, connection?.port, connection?.readCommunity, connection?.manualBatteryBlockCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleConnect = async () => {
     setError('');
     setBusy(true);
     try {
+      const manualCount = manualBatteryCount.trim() === '' ? null : Number(manualBatteryCount);
       const result = await api.ups.setConnection({
         host: host.trim(),
         port,
         readCommunity: readCommunity.trim(),
         writeCommunity: writeCommunity.trim() || undefined,
+        manualBatteryBlockCount: manualCount,
       });
       onChange(result);
     } catch (err) {
@@ -108,6 +112,20 @@ export default function ConnectionBar({ connection, onChange }: Props) {
             disabled={isConnected || busy}
             placeholder="private"
             className="w-24 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-slate-200 disabled:opacity-50 focus:outline-none focus:border-sky-500"
+          />
+        </div>
+
+        <div className="flex items-center gap-1" title="Boş bırakılırsa nominal voltaj/12 ile otomatik hesaplanır">
+          <label className="text-slate-500">Akü:</label>
+          <input
+            type="number"
+            value={manualBatteryCount}
+            onChange={e => setManualBatteryCount(e.target.value)}
+            disabled={isConnected || busy}
+            placeholder="oto"
+            min={1}
+            max={80}
+            className="w-16 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-slate-200 disabled:opacity-50 focus:outline-none focus:border-sky-500"
           />
         </div>
 

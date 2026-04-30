@@ -10,8 +10,9 @@ public interface IConnectionState
     int Port { get; }
     string ReadCommunity { get; }
     string WriteCommunity { get; }
+    int? ManualBatteryBlockCount { get; }
 
-    void Update(string host, int port, string readCommunity, string? writeCommunity);
+    void Update(string host, int port, string readCommunity, string? writeCommunity, int? manualBatteryBlockCount);
     void Clear();
     UpsConnectionInfo Snapshot();
 }

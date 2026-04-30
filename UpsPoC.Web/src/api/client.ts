@@ -1,4 +1,7 @@
-import type { ConnectionRequest, UpsCommand, UpsConfig, UpsConnectionInfo } from '../types';
+import type {
+  ConnectionRequest, UpsCommand, UpsConfig, UpsConnectionInfo,
+  MetricDetail, DiagnosticResult, RawOidResult
+} from '../types';
 
 const BASE = '/api';
 
@@ -50,5 +53,16 @@ export const api = {
     setConnection: (req: ConnectionRequest) =>
       request<UpsConnectionInfo>('/ups/connection', { method: 'POST', body: JSON.stringify(req) }),
     clearConnection: () => request<UpsConnectionInfo>('/ups/connection', { method: 'DELETE' }),
+    getMetricsDetail: () => request<MetricDetail[]>('/ups/metrics-detail'),
+    runDiagnostic: () => request<DiagnosticResult>('/ups/diagnostic', { method: 'POST' }),
+    customSet: (oid: string, value: number) =>
+      request<{ success: boolean }>('/ups/custom-set', { method: 'POST', body: JSON.stringify({ oid, value }) }),
+    historyCsvUrl: '/api/ups/history.csv',
+  },
+  debug: {
+    walk: (oid: string, withinSubtree = true) =>
+      request<RawOidResult[]>(`/debug/walk?oid=${encodeURIComponent(oid)}&withinSubtree=${withinSubtree}`),
+    get: (oid: string) =>
+      request<RawOidResult>(`/debug/get?oid=${encodeURIComponent(oid)}`),
   },
 };

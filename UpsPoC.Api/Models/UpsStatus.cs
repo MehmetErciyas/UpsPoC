@@ -13,6 +13,10 @@ public class UpsStatus
     public string Contact { get; set; } = string.Empty;             // sysContact 1.3.6.1.2.1.1.4.0
     public string UptimeText { get; set; } = string.Empty;          // sysUpTime → "X gün HH:mm:ss"
     public string LastTestResultText { get; set; } = string.Empty;  // 1=Done, 2=Aborted, 3=InProgress, 4=NoTests
+    public string SystemTime { get; set; } = string.Empty;          // 935.1.1.1.9.1.0 (fallback .10.1.0, .8.1.0)
+    public string NextTestSchedule { get; set; } = string.Empty;    // 935.1.1.1.7.2.4.0 (fallback .7.2.5.0)
+    public string ShutdownWarning { get; set; } = string.Empty;     // 935.1.1.1.6.3.1.0 (fallback .6.3.2.0)
+    public string DailyReportEmail { get; set; } = string.Empty;    // 935.1.1.1.9.3.1.0 (fallback .10.3.1.0) → "Evet"/"Hayır"
 
     // Batarya
     public int BatteryStatus { get; set; }                  // 1=bilinmiyor 2=normal 3=düşük (NetAgent)

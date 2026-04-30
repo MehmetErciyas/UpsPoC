@@ -9,6 +9,10 @@ export interface UpsStatus {
   contact: string;
   uptimeText: string;
   lastTestResultText: string;
+  systemTime: string;
+  nextTestSchedule: string;
+  shutdownWarning: string;
+  dailyReportEmail: string;
 
   // Batarya
   batteryStatus: number;
@@ -63,6 +67,7 @@ export interface ConnectionRequest {
   port: number;
   readCommunity: string;
   writeCommunity?: string;
+  manualBatteryBlockCount?: number | null;
 }
 
 export interface UpsConnectionInfo {
@@ -71,4 +76,35 @@ export interface UpsConnectionInfo {
   readCommunity: string;
   hasWriteCommunity: boolean;
   isConfigured: boolean;
+  manualBatteryBlockCount?: number | null;
+}
+
+export interface MetricDetail {
+  key: string;
+  title: string;
+  group: 'live' | 'info' | 'f-equivalent';
+  valueText: string;
+  rawValue: string;
+  oid: string;
+  ok: boolean;
+  error?: string;
+}
+
+export interface DiagnosticLine {
+  title: string;
+  oid: string;
+  ok: boolean;
+  value?: string;
+  error?: string;
+}
+
+export interface DiagnosticResult {
+  lines: DiagnosticLine[];
+  hints: string[];
+}
+
+export interface RawOidResult {
+  oid: string;
+  type: string;
+  value: string;
 }

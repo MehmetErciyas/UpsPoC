@@ -12,12 +12,11 @@ public class ConnectionState : IConnectionState
     private int _port = 161;
     private string _readCommunity = "public";
     private string _writeCommunity = string.Empty;
+    private int? _manualBatteryBlockCount;
     private bool _isConfigured;
 
     public ConnectionState(IOptions<AppSettings> options)
     {
-        // Önyükleme: appsettings.json'daki değerler form'a default olarak gelsin.
-        // Host doluysa otomatik konfigüre olarak başla — kullanıcı yine değiştirebilir.
         var ups = options.Value.Ups;
         if (!string.IsNullOrWhiteSpace(ups.Host) && IPAddress.TryParse(ups.Host, out _))
         {
@@ -34,8 +33,9 @@ public class ConnectionState : IConnectionState
     public int Port { get { lock (_lock) return _port; } }
     public string ReadCommunity { get { lock (_lock) return _readCommunity; } }
     public string WriteCommunity { get { lock (_lock) return _writeCommunity; } }
+    public int? ManualBatteryBlockCount { get { lock (_lock) return _manualBatteryBlockCount; } }
 
-    public void Update(string host, int port, string readCommunity, string? writeCommunity)
+    public void Update(string host, int port, string readCommunity, string? writeCommunity, int? manualBatteryBlockCount)
     {
         if (string.IsNullOrWhiteSpace(host) || !IPAddress.TryParse(host, out _))
             throw new ArgumentException("Geçerli bir IP adresi gerekli.", nameof(host));
@@ -43,6 +43,8 @@ public class ConnectionState : IConnectionState
             throw new ArgumentException("Port 1-65535 aralığında olmalıdır.", nameof(port));
         if (string.IsNullOrWhiteSpace(readCommunity))
             throw new ArgumentException("Read community boş olamaz.", nameof(readCommunity));
+        if (manualBatteryBlockCount.HasValue && manualBatteryBlockCount.Value is not (>= 1 and <= 80))
+            throw new ArgumentException("Akü adedi 1-80 aralığında olmalıdır.", nameof(manualBatteryBlockCount));
 
         lock (_lock)
         {
@@ -50,16 +52,14 @@ public class ConnectionState : IConnectionState
             _port = port;
             _readCommunity = readCommunity;
             _writeCommunity = writeCommunity ?? string.Empty;
+            _manualBatteryBlockCount = manualBatteryBlockCount;
             _isConfigured = true;
         }
     }
 
     public void Clear()
     {
-        lock (_lock)
-        {
-            _isConfigured = false;
-        }
+        lock (_lock) _isConfigured = false;
     }
 
     public UpsConnectionInfo Snapshot()
@@ -72,7 +72,8 @@ public class ConnectionState : IConnectionState
                 Port = _port,
                 ReadCommunity = _readCommunity,
                 HasWriteCommunity = !string.IsNullOrEmpty(_writeCommunity),
-                IsConfigured = _isConfigured
+                IsConfigured = _isConfigured,
+                ManualBatteryBlockCount = _manualBatteryBlockCount
             };
         }
     }
