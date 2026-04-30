@@ -22,9 +22,9 @@ public class DebugController : ControllerBase
     /// Örnek: GET /api/debug/walk?oid=1.3.6.1.2.1.33
     /// </summary>
     [HttpGet("walk")]
-    public async Task<IActionResult> Walk([FromQuery] string oid = "1.3.6.1.2.1.33")
+    public async Task<IActionResult> Walk([FromQuery] string oid = "1.3.6.1.2.1.33", [FromQuery] bool withinSubtree = true)
     {
-        var results = await _snmp.WalkAsync(oid);
+        var results = await _snmp.WalkAsync(oid, withinSubtree);
         return Ok(results);
     }
 

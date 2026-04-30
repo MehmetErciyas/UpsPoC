@@ -15,43 +15,18 @@ public class SnmpService : ISnmpService
     private readonly OctetString _readCommunity;
     private readonly OctetString _writeCommunity;
 
-    // RFC 1628 Read OIDs
+    // Powerware/MAKELSAN NetAgent IX vendor OIDs (enterprise 935)
     private static class Oids
     {
-        public const string ModelName             = "1.3.6.1.2.1.33.1.1.2.0";
-        public const string FirmwareVersion       = "1.3.6.1.2.1.33.1.1.4.0";
-        public const string AttachedDevices       = "1.3.6.1.2.1.33.1.1.6.0";
+        public const string UpsStatus             = "1.3.6.1.4.1.935.1.1.1.4.1.1.0";
 
-        public const string BatteryStatus         = "1.3.6.1.2.1.33.1.2.1.0";
-        public const string BatteryCapacityPercent = "1.3.6.1.2.1.33.1.2.4.0";
-        public const string BatteryRemainingMins  = "1.3.6.1.2.1.33.1.2.3.0";
-        public const string BatteryVoltage        = "1.3.6.1.2.1.33.1.2.5.0";
-        public const string BatteryTemperature    = "1.3.6.1.2.1.33.1.2.7.0";
+        public const string BatteryCapacityPercent = "1.3.6.1.4.1.935.1.1.1.2.2.1.0";
+        public const string BatteryVoltage        = "1.3.6.1.4.1.935.1.1.1.2.2.2.0";
 
-        public const string InputFrequency        = "1.3.6.1.2.1.33.1.3.3.1.2.1";
-        public const string InputVoltage          = "1.3.6.1.2.1.33.1.3.3.1.3.1";
+        public const string InputVoltage          = "1.3.6.1.4.1.935.1.1.1.3.2.1.0";
 
-        public const string OutputSource          = "1.3.6.1.2.1.33.1.4.1.0";
-        public const string OutputFrequency       = "1.3.6.1.2.1.33.1.4.2.0";
-        public const string OutputVoltage         = "1.3.6.1.2.1.33.1.4.4.1.2.1";
-        public const string OutputCurrent         = "1.3.6.1.2.1.33.1.4.4.1.3.1";
-        public const string OutputLoadPercent     = "1.3.6.1.2.1.33.1.4.4.1.5.1";
-        public const string OutputPowerWatts      = "1.3.6.1.2.1.33.1.4.4.1.7.1";
-
-        public const string ActiveAlarmCount      = "1.3.6.1.2.1.33.1.6.1.0";
-
-        // Config OIDs
-        public const string ConfigInputVoltage    = "1.3.6.1.2.1.33.1.9.1.0";
-        public const string ConfigInputFreq       = "1.3.6.1.2.1.33.1.9.2.0";
-        public const string ConfigOutputVoltage   = "1.3.6.1.2.1.33.1.9.3.0";
-        public const string ConfigOutputFreq      = "1.3.6.1.2.1.33.1.9.4.0";
-        public const string ConfigLowBattMins     = "1.3.6.1.2.1.33.1.9.7.0";
-        public const string ConfigAudibleStatus   = "1.3.6.1.2.1.33.1.9.8.0";
-        public const string ConfigLowVoltTrans    = "1.3.6.1.2.1.33.1.9.9.0";
-        public const string ConfigHighVoltTrans   = "1.3.6.1.2.1.33.1.9.10.0";
-
-        // Test OIDs
-        public const string TestSpinLock          = "1.3.6.1.2.1.33.1.7.2.0";
+        public const string OutputVoltage         = "1.3.6.1.4.1.935.1.1.1.4.2.1.0";
+        public const string OutputLoadPercent     = "1.3.6.1.4.1.935.1.1.1.4.2.3.0";
     }
 
     public SnmpService(IOptions<AppSettings> options, ILogger<SnmpService> logger)
@@ -95,35 +70,23 @@ public class SnmpService : ISnmpService
         try
         {
             var vars = await GetAsync(
-                Oids.ModelName, Oids.FirmwareVersion, Oids.AttachedDevices,
-                Oids.BatteryStatus, Oids.BatteryCapacityPercent, Oids.BatteryRemainingMins,
-                Oids.BatteryVoltage, Oids.BatteryTemperature,
-                Oids.InputFrequency, Oids.InputVoltage,
-                Oids.OutputSource, Oids.OutputFrequency, Oids.OutputVoltage,
-                Oids.OutputCurrent, Oids.OutputLoadPercent, Oids.OutputPowerWatts,
-                Oids.ActiveAlarmCount);
+                Oids.UpsStatus,
+                Oids.BatteryCapacityPercent,
+                Oids.BatteryVoltage,
+                Oids.InputVoltage,
+                Oids.OutputVoltage,
+                Oids.OutputLoadPercent);
 
             return new UpsStatus
             {
-                ModelName               = GetStr(vars, 0),
-                FirmwareVersion         = GetStr(vars, 1),
-                AttachedDevices         = GetStr(vars, 2),
-                BatteryStatus           = GetInt(vars, 3),
-                BatteryCapacityPercent  = GetInt(vars, 4),
-                BatteryRemainingMinutes = GetInt(vars, 5),
-                BatteryVoltage          = GetInt(vars, 6) / 10.0,
-                BatteryTemperature      = GetInt(vars, 7),
-                InputFrequency          = GetInt(vars, 8) / 10.0,
-                InputVoltage            = GetInt(vars, 9),
-                OutputSource            = GetInt(vars, 10),
-                OutputFrequency         = GetInt(vars, 11) / 10.0,
-                OutputVoltage           = GetInt(vars, 12),
-                OutputCurrent           = GetInt(vars, 13) / 10.0,
-                OutputLoadPercent       = GetInt(vars, 14),
-                OutputPowerWatts        = GetInt(vars, 15),
-                ActiveAlarmCount        = GetInt(vars, 16),
-                Timestamp               = DateTime.UtcNow,
-                IsConnected             = true
+                OutputSource           = GetInt(vars, 0),  // 1=unknown,2=online,3=battery,4=boost,5=sleep,6=bypass,7=rebooting,8=standby,9=buck
+                BatteryCapacityPercent = GetInt(vars, 1),
+                BatteryVoltage         = GetInt(vars, 2) / 10.0,
+                InputVoltage           = GetInt(vars, 3) / 10.0,
+                OutputVoltage          = GetInt(vars, 4) / 10.0,
+                OutputLoadPercent      = GetInt(vars, 5),
+                Timestamp              = DateTime.UtcNow,
+                IsConnected            = true
             };
         }
         catch (Exception ex)
@@ -135,31 +98,8 @@ public class SnmpService : ISnmpService
 
     public async Task<UpsConfig> GetConfigAsync()
     {
-        try
-        {
-            var vars = await GetAsync(
-                Oids.ConfigInputVoltage, Oids.ConfigInputFreq,
-                Oids.ConfigOutputVoltage, Oids.ConfigOutputFreq,
-                Oids.ConfigLowBattMins, Oids.ConfigAudibleStatus,
-                Oids.ConfigLowVoltTrans, Oids.ConfigHighVoltTrans);
-
-            return new UpsConfig
-            {
-                InputVoltageNominal      = GetInt(vars, 0),
-                InputFreqNominal         = GetInt(vars, 1),
-                OutputVoltageNominal     = GetInt(vars, 2),
-                OutputFreqNominal        = GetInt(vars, 3),
-                LowBatteryMinutes        = GetInt(vars, 4),
-                AudibleStatus            = GetInt(vars, 5),
-                LowVoltageTransferPoint  = GetInt(vars, 6),
-                HighVoltageTransferPoint = GetInt(vars, 7)
-            };
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "SNMP GET config failed");
-            throw;
-        }
+        // Config OIDs not yet discovered for this device — return empty config
+        return await Task.FromResult(new UpsConfig());
     }
 
     public async Task SetIntAsync(string oid, int value)
@@ -208,9 +148,9 @@ public class SnmpService : ISnmpService
         }
     }
 
-    public async Task RunBatteryTestAsync()
+    public Task RunBatteryTestAsync()
     {
-        await SetIntAsync(Oids.TestSpinLock, 1);
+        throw new NotSupportedException("Battery test OID not yet discovered for this device.");
     }
 
     public async Task<RawOidResult> GetRawAsync(string oid)
@@ -234,20 +174,20 @@ public class SnmpService : ISnmpService
         }
     }
 
-    public async Task<List<RawOidResult>> WalkAsync(string startOid)
+    public async Task<List<RawOidResult>> WalkAsync(string startOid, bool withinSubtree = true)
     {
         var results = new List<RawOidResult>();
         try
         {
             var walked = new List<Variable>();
-            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(10000));
+            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(30000));
             await Messenger.WalkAsync(
                 VersionCode.V2,
                 _endpoint,
                 _readCommunity,
                 new ObjectIdentifier(startOid),
                 walked,
-                WalkMode.WithinSubtree,
+                withinSubtree ? WalkMode.WithinSubtree : WalkMode.Default,
                 cts.Token);
 
             foreach (var v in walked)
